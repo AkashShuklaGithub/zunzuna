@@ -12,8 +12,8 @@ module.exports = {
 	* That means, if it takes 40 mins to drive from Koramangala to Hebbal now, it is assumed
 	* that it's not more than 100 mins at any time of the day.
 	*/
-	maxDeviationToTravelTime : function() { return 60; },
-	maxBufferTime : function() { return 10; },
+	maxDeviationToTravelTime : function() { return 5; },
+	maxBufferTime : function() { return 2; },
 	maxWaitingTime : function() { return 0; },
 	googleApiKey : function() { return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA"; },
 
@@ -46,29 +46,36 @@ module.exports = {
 			};
 			// console.log("Event object created ==>");
 			// console.log(util.inspect(event, false, null));
-			console.log("Event object Creation Complete");
+			// console.log("Event object Creation Complete");
+			console.log("|==> addEvent()-> event.requestAtTime : " + moment(event.requestAtTime).format("HH:mm"));
 			return event;
 		}
 		var getMaxTravelTime = function(travelTime){
-			return math.add(travelTime, maxDeviationToTravelTime);
+			var maxTravelTime = math.add(travelTime, maxDeviationToTravelTime);
+			console.log("|==> maxTravelTime : " + maxTravelTime);
+			return maxTravelTime;
 		}
 
 		var updateTravelTimeAt = function(travelTime){
 			var deffered = Q.defer();
 			var maxTravelTime = getMaxTravelTime(travelTime);
-			deffered.resolve(moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(maxTravelTime, "minutes"));
+			var updateTravelTimeAt = moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(maxTravelTime, "minutes");
+			console.log("|==> updateTravelTimeAt : " + (updateTravelTimeAt).format("HH:mm"));
+			deffered.resolve(updateTravelTimeAt);
 			return deffered.promise;
 		};
-		
+
 		var notificationTime = function(travelTime){
 			var deffered = Q.defer();
-			deffered.resolve(moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(travelTime, "minutes"));
+			var notificationTime = moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(travelTime, "minutes");
+			console.log("|==> notificationTime : " + moment(notificationTime).format("HH:mm"));
+			deffered.resolve(notificationTime);
 			return deffered.promise;
 		};
 
 		deffered.resolve(this.getTravelTime(source, destination).then(function(travelTime) {
 			return Q.all([updateTravelTimeAt(travelTime), notificationTime(travelTime)]).spread(function(updateTravelTimeAt, notifiactionTime){
-				console.log("Event Initialization complete.");
+				// console.log("Event Initialization complete.");
 				return addEvent(source, destination, travelStartTime, email, notifiactionTime, travelTime, updateTravelTimeAt)
 			});
 		}));
@@ -87,6 +94,7 @@ module.exports = {
 	* @return some timstamp when to fetch the travel time to reach destination
 	*/
 	getTravelTimeAt: function(event){
+		console.log("Algo starts here")
 		array = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
 		var checkAfter = moment(event.notificationTime, "HH:mm").diff(moment(event.requestAtTime, "HH:mm"));
 		if(checkAfter)
@@ -105,8 +113,12 @@ module.exports = {
 			console.log(travelTime.value)
 			return travelTime.value;
 		})
-		event.notificationTime = moment(event.travelStartTime).subtract(this.maxBufferTime, "minutes").subtract(this.maxWaitingTime, "minutes").subtract(newTravelTime, "minutes");
-		this.prettyprint(event);
+		console.log("|==> getTravelTimeAt(event)-> newTravelTime : " + moment(newTravelTime.value).format("HH:mm"));
+
+		event.notificationTime = moment(event.travelStartTime).subtract(this.maxBufferTime, "minutes").subtract(this.maxWaitingTime, "minutes").subtract(newTravelTime.value, "minutes");
+
+		console.log("|==> algo notificationTime : " + moment(event.notificationTime).format("HH:mm"));
+		//this.prettyprint(event);
 		return event;
 	},
 
@@ -149,7 +161,9 @@ module.exports = {
 				deffered.resolve(10);
 			}
 			else{
-				deffered.reject(" Error occured while retrive distance from google api at " + new Date());
+				console.log("|==> travelTime : " + 1 + " min");
+				deffered.resolve(1);
+				// deffered.reject(" Error occured while retrive distance from google api at " + new Date());
 			}
 		})
 		return deffered.promise;
