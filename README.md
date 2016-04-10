@@ -13,8 +13,7 @@ Calculate the best time to fetch travel time from source to destination (getTrav
 #NOTE
 Travel time from source to destination is subjected to change as per Traffic.
 
-#Important Formulae
-initRequest()
+#Algorithm
 1. set event.updateTravelTimeAt to currentTime and fetch the event.travelTime
 2. Calculate maxTravelTime = event.travelTime @ event.requestAtTime + maxDeviationToTravelTime
 3. set event.updateTravelTimeAt to [event.travelStartTime - (maxBufferTime + maxTravelTime + maxWaitingTime)]
