@@ -14,7 +14,7 @@ Notify user when to book uber to reach destination on time. :)
 Travel time from source to destination is subjected to change as per Traffic.
 
 
-# Algorithm
+### Algorithm
 1. set event.updateTravelTimeAt to currentTime and fetch the event.travelTime
 2. Calculate maxTravelTime = event.travelTime @ event.requestAtTime + maxDeviationToTravelTime
 3. set event.updateTravelTimeAt to [event.travelStartTime - (maxBufferTime + maxTravelTime + maxWaitingTime)]
