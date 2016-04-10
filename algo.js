@@ -12,8 +12,8 @@ module.exports = {
 	* That means, if it takes 40 mins to drive from Koramangala to Hebbal now, it is assumed
 	* that it's not more than 100 mins at any time of the day.
 	*/
-	maxDeviationToTravelTime : function() { return 5; },
-	maxBufferTime : function() { return 2; },
+	maxDeviationToTravelTime : function() { return 10; },
+	maxBufferTime : function() { return 5; },
 	maxWaitingTime : function() { return 0; },
 	googleApiKey : function() { return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA"; },
 
@@ -158,11 +158,11 @@ module.exports = {
 		request(this.getGoogleApiEndPoint(source, destination), function (error, response, data) {
 			if (!error && response.statusCode == 200) {
 				//console.log("Data Fetched from google: " + data.toString())
-				deffered.resolve(10);
+				deffered.resolve(5);
 			}
 			else{
 				console.log("|==> travelTime : " + 1 + " min");
-				deffered.resolve(1);
+				deffered.resolve(5);
 				// deffered.reject(" Error occured while retrive distance from google api at " + new Date());
 			}
 		})

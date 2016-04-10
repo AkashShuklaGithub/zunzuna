@@ -3,7 +3,7 @@ var moment = require('moment');
 var util = require('util')
 moment().format();
 
-var event = algo.init("Propulsive Pride+Bengaluru", "Ecoworld+Bengaluru", moment().add(10, "minutes"), "awachat11vaibhav@gmail.com")
+var event = algo.init("Propulsive Pride+Bengaluru", "Ecoworld+Bengaluru", moment().add(30, "minutes"), "awachat11vaibhav@gmail.com")
 
 event.then(function(event){ 
 	setInterval(function() {
