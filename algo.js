@@ -13,7 +13,7 @@ module.exports = {
 	* that it's not more than 100 mins at any time of the day.
 	*/
 	maxDeviationToTravelTime : function() { return 10; },
-	maxBufferTime : function() { return 5; },
+	maxBufferTime : function() { return 14; },
 	maxWaitingTime : function() { return 0; },
 	googleApiKey : function() { return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA"; },
 
@@ -22,7 +22,7 @@ module.exports = {
 	* @return some timestamp when to notify the user
 	*/
 
-	init : function(source, destination, travelStartTime, email){
+	init : function(source, destination, startTravelAt, email){
 		//var travelTime = this.getTravelTime(source, destination);
 		/*
 		* @params travelTime from source to destination when the request was made/ event was created
@@ -33,13 +33,13 @@ module.exports = {
 		var maxBufferTime = this.maxBufferTime();
 		var maxWaitingTime = this.maxWaitingTime();
 
-		var addEvent = function(source, destination, travelStartTime, email, notificationTime, travelTime, updateTravelTimeAt){
+		var addEvent = function(source, destination, startTravelAt, email, notificationTime, travelTime, updateTravelTimeAt){
 			var event = {
 				source: source,
 				destination: destination,
-				travelStartTime: travelStartTime,
+				startTravelAt: startTravelAt,
 				email: email,
-				requestAtTime: moment(),
+				requestedAt: moment(),
 				notificationTime: notificationTime,
 				travelTime : travelTime,
 				updateTravelTimeAt : updateTravelTimeAt
@@ -47,28 +47,29 @@ module.exports = {
 			// console.log("Event object created ==>");
 			// console.log(util.inspect(event, false, null));
 			// console.log("Event object Creation Complete");
-			console.log("|==> addEvent()-> event.requestAtTime : " + moment(event.requestAtTime).format("HH:mm"));
+			// console.log("|==> addEvent()-> event.requestedAt : " + moment(event.requestedAt).format("HH:mm"));
+			// console.log("|==> event.startTravelAt : " + moment(event.startTravelAt).format("HH:mm"));
 			return event;
 		}
 		var getMaxTravelTime = function(travelTime){
 			var maxTravelTime = math.add(travelTime, maxDeviationToTravelTime);
-			console.log("|==> maxTravelTime : " + maxTravelTime);
+			console.log("|==> maxTravelTime : " + maxTravelTime + " mins");
 			return maxTravelTime;
 		}
 
 		var updateTravelTimeAt = function(travelTime){
 			var deffered = Q.defer();
 			var maxTravelTime = getMaxTravelTime(travelTime);
-			var updateTravelTimeAt = moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(maxTravelTime, "minutes");
-			console.log("|==> updateTravelTimeAt : " + (updateTravelTimeAt).format("HH:mm"));
+			var updateTravelTimeAt = moment(startTravelAt).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(maxTravelTime, "minutes");
+			// console.log("|==> updateTravelTimeAt : " + (updateTravelTimeAt).format("HH:mm"));
 			deffered.resolve(updateTravelTimeAt);
 			return deffered.promise;
 		};
 
 		var notificationTime = function(travelTime){
 			var deffered = Q.defer();
-			var notificationTime = moment(travelStartTime).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(travelTime, "minutes");
-			console.log("|==> notificationTime : " + moment(notificationTime).format("HH:mm"));
+			var notificationTime = moment(startTravelAt).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(travelTime, "minutes");
+			// console.log("|==> notificationTime : " + moment(notificationTime).format("HH:mm"));
 			deffered.resolve(notificationTime);
 			return deffered.promise;
 		};
@@ -76,70 +77,78 @@ module.exports = {
 		deffered.resolve(this.getTravelTime(source, destination).then(function(travelTime) {
 			return Q.all([updateTravelTimeAt(travelTime), notificationTime(travelTime)]).spread(function(updateTravelTimeAt, notifiactionTime){
 				// console.log("Event Initialization complete.");
-				return addEvent(source, destination, travelStartTime, email, notifiactionTime, travelTime, updateTravelTimeAt)
+				return addEvent(source, destination, startTravelAt, email, notifiactionTime, travelTime, updateTravelTimeAt)
 			});
 		}));
 		return deffered.promise;
 	},
 
-	convertToObject: function(data){
-		return JSON.parse(data);
-	},
+	updateEvent: function(event){
+		var maxBufferTime = this.maxBufferTime();
+		var maxWaitingTime = this.maxWaitingTime();
+		//var updateTravelTimeAt = this.getTravelTimeAt(event);
+		var notificationTime = function(travelTime){
+			var notificationTime = moment(event.startTravelAt).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime,"minutes").subtract(travelTime, "minutes");
+			console.log("|==> updateEvent()-> notificationTime : " + moment(notificationTime).format("HH:mm"));
+			return notificationTime;
+		}
+		that = this;
+		return this.getTravelTime(event.source, event.destination).then(function(travelTime){
+			event.notificationTime = notificationTime(travelTime);
+			event.updateTravelTimeAt = that.getTravelTimeAt(event);
+			return event;		
+		});
 
-	convertToJson: function(data){
-		return JSON.stringify(data);
 	},
 
 	/*
 	* @return some timstamp when to fetch the travel time to reach destination
+	* @Assumption Google Api polling will stop 5 mins before notification time
 	*/
 	getTravelTimeAt: function(event){
-		console.log("Algo starts here")
-		array = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
-		var checkAfter = moment(event.notificationTime, "HH:mm").diff(moment(event.requestAtTime, "HH:mm"));
-		if(checkAfter)
-			checkAfter = math.chain(checkAfter).divide(1000).divide(60);
-		else
-			checkAfter = -1;
+		var fibonacciNumbersArray = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
+		var checkAfter = moment(event.notificationTime).diff(moment());
+		checkAfter = Math.ceil(math.chain(checkAfter).divide(1000).divide(60));
+		if(checkAfter === 0)
+			return null;
+
 		var magicNumber = this.getClosedFibonaciiNumber(checkAfter);
-		var offset = math.subtract(array.indexOf(magicNumber),1);
-		offset = offset<0 ? 0 : offset;
-		var offsetValue = array[offset];
-		// add the offsetValue to event.updateTravelTimeAt
-		event.updateTravelTimeAt = moment(event.updateTravelTimeAt).add(offsetValue, 'minutes');
+		var intermediateValue = math.subtract(fibonacciNumbersArray.indexOf(magicNumber),1)
+		var offset = fibonacciNumbersArray[ intermediateValue < 0 ? 0 : intermediateValue];
 
-		// recalculate notificationTime
-		var newTravelTime = this.getTravelTime(event.source, event.destination).then(function(){
-			console.log(travelTime.value)
-			return travelTime.value;
-		})
-		console.log("|==> getTravelTimeAt(event)-> newTravelTime : " + moment(newTravelTime.value).format("HH:mm"));
+		var addTravelTime =  math.subtract(checkAfter, offset);
 
-		event.notificationTime = moment(event.travelStartTime).subtract(this.maxBufferTime, "minutes").subtract(this.maxWaitingTime, "minutes").subtract(newTravelTime.value, "minutes");
+		// console.log(" addTravelTime("+ addTravelTime +") = " + " checkAfter ("+checkAfter+") - "+ "offset(" + offset+") . [ magicnumber(" + magicNumber + ") ]");
 
-		console.log("|==> algo notificationTime : " + moment(event.notificationTime).format("HH:mm"));
-		//this.prettyprint(event);
-		return event;
+
+		if(addTravelTime === 5)
+			return moment();
+		// add the offset to event.updateTravelTimeAt
+		updateTravelTimeAt = moment().add(addTravelTime, 'minutes');
+
+		console.log("|============> getTravelTimeAt()-> updateTravelTimeAt : " + moment(updateTravelTimeAt).format("HH:mm"));
+		// this.prettyprint(event);
+		return updateTravelTimeAt;
 	},
 
 	prettyprint: function(event){
-		event.requestAtTime = moment(event.requestAtTime).format("HH:mm");
-		event.notificationTime = moment(event.notificationTime).format("HH:mm");
-		event.travelStartTime = moment(event.travelStartTime).format("HH:mm");
+		event.requestedAt = moment(event.requestedAt).format("HH:mm");
+		event.notificationTime = moment(event.notificationTime.value).format("HH:mm");
+		event.startTravelAt = moment(event.startTravelAt).format("HH:mm");
 		event.updateTravelTimeAt = moment(event.updateTravelTimeAt).format("HH:mm");
 		console.log(util.inspect(event, false, null));
 	},
 
 	getClosedFibonaciiNumber: function(number){
-		array = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
-		var current = array[0];
+		fibonacciNumbersArray = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
+		var current = fibonacciNumbersArray[0];
 		var difference = Math.abs(number - current);
-		var index = array.length;
+		var index = fibonacciNumbersArray.length;
 		while (index--) {
-			var newDifference = Math.abs(number - array[index]);
+			var newDifference = Math.abs(number - fibonacciNumbersArray[index]);
 			if (newDifference < difference) {
 				difference = newDifference;
-				current = array[index];
+				current = fibonacciNumbersArray[index];
 			}
 		}
 		return current;
@@ -161,7 +170,7 @@ module.exports = {
 				deffered.resolve(5);
 			}
 			else{
-				console.log("|==> travelTime : " + 1 + " min");
+				console.log("|==> travelTime : " + 5 + " min");
 				deffered.resolve(5);
 				// deffered.reject(" Error occured while retrive distance from google api at " + new Date());
 			}
@@ -169,11 +178,8 @@ module.exports = {
 		return deffered.promise;
 	},
 
-	sendNotificationAt : function(){
-		return "some text";
-	},
-
 	sendNotification: function(email){
+		console.log("|==> Email sent to " + email);
 		return true;
 	}
 }
