@@ -44,11 +44,7 @@ module.exports = {
 				travelTime : travelTime,
 				updateTravelTimeAt : updateTravelTimeAt
 			};
-			// console.log("Event object created ==>");
 			// console.log(util.inspect(event, false, null));
-			// console.log("Event object Creation Complete");
-			// console.log("|==> addEvent()-> event.requestedAt : " + moment(event.requestedAt).format("HH:mm"));
-			// console.log("|==> event.startTravelAt : " + moment(event.startTravelAt).format("HH:mm"));
 			return event;
 		}
 		var getMaxTravelTime = function(travelTime){
@@ -110,7 +106,7 @@ module.exports = {
 		var checkAfter = moment(event.notificationTime).diff(moment());
 		checkAfter = Math.ceil(math.chain(checkAfter).divide(1000).divide(60));
 		if(checkAfter === 0)
-			return null;
+			return moment();
 
 		var magicNumber = this.getClosedFibonaciiNumber(checkAfter);
 		var intermediateValue = math.subtract(fibonacciNumbersArray.indexOf(magicNumber),1)
@@ -121,12 +117,12 @@ module.exports = {
 		// console.log(" addTravelTime("+ addTravelTime +") = " + " checkAfter ("+checkAfter+") - "+ "offset(" + offset+") . [ magicnumber(" + magicNumber + ") ]");
 
 
-		if(addTravelTime === 5)
+		if(addTravelTime <= 5)
 			return moment();
 		// add the offset to event.updateTravelTimeAt
 		updateTravelTimeAt = moment().add(addTravelTime, 'minutes');
 
-		console.log("|============> getTravelTimeAt()-> updateTravelTimeAt : " + moment(updateTravelTimeAt).format("HH:mm"));
+		console.log("|==> getTravelTimeAt()-> updateTravelTimeAt : " + moment(updateTravelTimeAt).format("HH:mm"));
 		// this.prettyprint(event);
 		return updateTravelTimeAt;
 	},
@@ -163,7 +159,7 @@ module.exports = {
 	*/
 	getTravelTime: function(source, destination){
 		var deffered = Q.defer();
-		console.log('starting to fetch Travel time (GOOGLE) at ' + new Date());
+		console.log('|==> starting to fetch Travel time (GOOGLE) at ' + new Date());
 		request(this.getGoogleApiEndPoint(source, destination), function (error, response, data) {
 			if (!error && response.statusCode == 200) {
 				//console.log("Data Fetched from google: " + data.toString())
