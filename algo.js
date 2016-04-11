@@ -2,7 +2,9 @@ var math = require('mathjs');
 var util = require('util');
 var request = require('request');
 var Q = require('q');
+var poll = require('./poll.js');
 var moment = require('moment');
+var querystring = require('querystring');
 moment().format();
 
 module.exports = {
@@ -12,11 +14,12 @@ module.exports = {
 	* That means, if it takes 40 mins to drive from Koramangala to Hebbal now, it is assumed
 	* that it's not more than 100 mins at any time of the day.
 	*/
-	maxDeviationToTravelTime : function() { return 10; },
-	maxBufferTime : function() { return 14; },
-	maxWaitingTime : function() { return 0; },
+	maxDeviationToTravelTime : function() { return 20; },
+	maxBufferTime : function() { return 10; },
+	maxWaitingTime : function() { return 20; },
 	googleApiKey : function() { return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA"; },
-
+	uberApiKey: function() { return "BPehDhjfmMaomcn2ZbnWuyaqRzrZoTS1ezAMlZs1"},
+	startUberPolling : function(){ return 10 },
 	/*
 	* @description calculate notification time based on the alogrithm defined in algo module
 	* @return some timestamp when to notify the user
@@ -33,7 +36,7 @@ module.exports = {
 		var maxBufferTime = this.maxBufferTime();
 		var maxWaitingTime = this.maxWaitingTime();
 
-		var addEvent = function(source, destination, startTravelAt, email, notificationTime, travelTime, updateTravelTimeAt){
+		var addEvent = function(source, destination, startTravelAt, email, notificationTime, travelTime, updateTravelTimeAt, updateWaitingTimeAt){
 			var event = {
 				source: source,
 				destination: destination,
@@ -42,9 +45,11 @@ module.exports = {
 				requestedAt: moment(),
 				notificationTime: notificationTime,
 				travelTime : travelTime,
-				updateTravelTimeAt : updateTravelTimeAt
+				waitingTime: maxWaitingTime,
+				updateTravelTimeAt : updateTravelTimeAt,
+				updateWaitingTimeAt: updateWaitingTimeAt
 			};
-			// console.log(util.inspect(event, false, null));
+			console.log("Google ==>  updateTravelTimeAt: " + moment(event.updateTravelTimeAt).format("HH:mm")+ " updateWaitingTimeAt: " + moment(event.updateWaitingTimeAt).format("HH:mm") + " waitingTme: " + event.waitingTime + ", currentTime: " +  moment().format("HH:mm") + ", notificationTime: " + moment(event.notificationTime).format("HH:mm") + ", startTravelAt: " + moment(event.startTravelAt).format("HH:mm")+ ", requestedAt: " + moment(event.requestedAt).format("HH:mm"));
 			return event;
 		}
 		var getMaxTravelTime = function(travelTime){
@@ -64,16 +69,18 @@ module.exports = {
 
 		var notificationTime = function(travelTime){
 			var deffered = Q.defer();
+			// for the first time we will use maxWaitingTime
 			var notificationTime = moment(startTravelAt).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime, "minutes").subtract(travelTime, "minutes");
 			// console.log("|==> notificationTime : " + moment(notificationTime).format("HH:mm"));
 			deffered.resolve(notificationTime);
 			return deffered.promise;
 		};
-
+		that = this;
 		deffered.resolve(this.getTravelTime(source, destination).then(function(travelTime) {
-			return Q.all([updateTravelTimeAt(travelTime), notificationTime(travelTime)]).spread(function(updateTravelTimeAt, notifiactionTime){
-				// console.log("Event Initialization complete.");
-				return addEvent(source, destination, startTravelAt, email, notifiactionTime, travelTime, updateTravelTimeAt)
+			return Q.all([updateTravelTimeAt(travelTime), notificationTime(travelTime)]).spread(function(updateTravelTimeAt, notificationTime){
+				// set the initial time to trigger uber api polling
+				updateWaitingTimeAt = moment(notificationTime).subtract(that.startUberPolling(), "minutes");
+				return addEvent(source, destination, startTravelAt, email, notificationTime, travelTime, updateTravelTimeAt, updateWaitingTimeAt)
 			});
 		}));
 		return deffered.promise;
@@ -81,50 +88,36 @@ module.exports = {
 
 	updateEvent: function(event){
 		var maxBufferTime = this.maxBufferTime();
-		var maxWaitingTime = this.maxWaitingTime();
-		//var updateTravelTimeAt = this.getTravelTimeAt(event);
 		var notificationTime = function(travelTime){
-			var notificationTime = moment(event.startTravelAt).subtract(maxBufferTime, "minutes").subtract(maxWaitingTime,"minutes").subtract(travelTime, "minutes");
+			var notificationTime = moment(event.startTravelAt).subtract(maxBufferTime, "minutes").subtract(event.waitingTime,"minutes").subtract(travelTime, "minutes");
 			console.log("|==> updateEvent()-> notificationTime : " + moment(notificationTime).format("HH:mm"));
 			return notificationTime;
 		}
 		that = this;
 		return this.getTravelTime(event.source, event.destination).then(function(travelTime){
+			event.travelTime = travelTime;
 			event.notificationTime = notificationTime(travelTime);
-			event.updateTravelTimeAt = that.getTravelTimeAt(event);
+			event.updateTravelTimeAt = poll.heuristicPollingAt(event.notificationTime, 5);
 			return event;		
 		});
-
 	},
 
-	/*
-	* @return some timstamp when to fetch the travel time to reach destination
-	* @Assumption Google Api polling will stop 5 mins before notification time
-	*/
-	getTravelTimeAt: function(event){
-		var fibonacciNumbersArray = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
-		var checkAfter = moment(event.notificationTime).diff(moment());
-		checkAfter = Math.ceil(math.chain(checkAfter).divide(1000).divide(60));
-		if(checkAfter === 0)
-			return moment();
+	updateEventWithUber: function(event){
+		var maxBufferTime = this.maxBufferTime();
 
-		var magicNumber = this.getClosedFibonaciiNumber(checkAfter);
-		var intermediateValue = math.subtract(fibonacciNumbersArray.indexOf(magicNumber),1)
-		var offset = fibonacciNumbersArray[ intermediateValue < 0 ? 0 : intermediateValue];
-
-		var addTravelTime =  math.subtract(checkAfter, offset);
-
-		// console.log(" addTravelTime("+ addTravelTime +") = " + " checkAfter ("+checkAfter+") - "+ "offset(" + offset+") . [ magicnumber(" + magicNumber + ") ]");
-
-
-		if(addTravelTime <= 5)
-			return moment();
-		// add the offset to event.updateTravelTimeAt
-		updateTravelTimeAt = moment().add(addTravelTime, 'minutes');
-
-		console.log("|==> getTravelTimeAt()-> updateTravelTimeAt : " + moment(updateTravelTimeAt).format("HH:mm"));
-		// this.prettyprint(event);
-		return updateTravelTimeAt;
+		var notificationTime = function(waitingTime){
+			var notificationTime = moment(event.startTravelAt).subtract(maxBufferTime, "minutes").subtract(waitingTime,"minutes").subtract(event.travelTime, "minutes");
+			console.log("|==> updateEventWithUber()-> notificationTime : " + moment(notificationTime).format("HH:mm"));
+			return notificationTime;
+		}
+		that = this;
+		return this.getWaitingTime(event.source).then(function(waitingTime){
+			event.waitingTime = waitingTime;
+			event.updateWaitingTimeAt = poll.intervalPollingAt(2);
+			console.log("|==> updateEventWithUber()-> updateWaitingTimeAt : " + moment(event.updateWaitingTimeAt).format("HH:mm"));
+			event.notificationTime = notificationTime(waitingTime);
+			return event;		
+		});
 	},
 
 	prettyprint: function(event){
@@ -159,19 +152,66 @@ module.exports = {
 	*/
 	getTravelTime: function(source, destination){
 		var deffered = Q.defer();
+		that = this;
 		console.log('|==> starting to fetch Travel time (GOOGLE) at ' + new Date());
 		request(this.getGoogleApiEndPoint(source, destination), function (error, response, data) {
 			if (!error && response.statusCode == 200) {
-				//console.log("Data Fetched from google: " + data.toString())
-				deffered.resolve(5);
+				// console.log("Data Fetched from google: " + data.toString())
+				deffered.resolve(that.parseGoogleDistanceMatixData(data));
 			}
 			else{
-				console.log("|==> travelTime : " + 5 + " min");
-				deffered.resolve(5);
-				// deffered.reject(" Error occured while retrive distance from google api at " + new Date());
+				console.log(error)
+				deffered.reject(" Error occured while retrive distance from google api at " + new Date());
 			}
 		})
 		return deffered.promise;
+	},
+
+	/*
+	* @return time in minutes
+	*/
+	parseGoogleDistanceMatixData : function(data){
+		data = JSON.parse(data);
+		return Math.round(math.divide(data.rows[0].elements[0].duration.value, 60));
+	},
+
+	getUberApiEndPoint: function(source){
+		return "https://api.uber.com/v1/estimates/time?server_token=" + this.uberApiKey() + "&start_latitude="+ source[0] + "&start_longitude=" + source[1];
+	},
+
+	//GET /v1/estimate/time
+
+	getWaitingTime: function(source){
+		var deffered = Q.defer();
+		console.log('|==> starting to fetch Uber waiting time (UBER) at ' + new Date());
+		that = this;
+		request(this.getUberApiEndPoint(source.split(',')), function (error, response, data) {
+			if (!error && response.statusCode == 200) {
+				// console.log("Data Fetched from Uber: " + data.toString())
+				deffered.resolve(that.parseUberTimeDate(data));
+			}
+			else{
+				console.log(error)
+				deffered.reject(" Error occured while retrive estimate time from uber api at " + new Date());
+			}
+		})
+		return deffered.promise;
+	},
+	/*
+	* @return time in minutes
+	*/
+	parseUberTimeDate : function(data){
+		data = JSON.parse(data);
+		newData = data.times.map(function(cab){
+			if(cab.display_name === "uberGO")
+				return cab.estimate;
+		}).filter(function(element){
+			return element != undefined;
+		});
+		// console.log(newData);
+		minTimeForCab = newData.length > 0 ? Math.round(math.divide(newData[0],60)) : this.maxWaitingTime();
+		console.log("|==> minTimeForCab : " + minTimeForCab + " mins");
+		return minTimeForCab;
 	},
 
 	sendNotification: function(email){
