@@ -56,8 +56,8 @@ module.exports = {
                 startTravelAt: startTravelAt,
                 travelTime: travelTime,
                 updateTravelTimeAt: updateTravelTimeAt,
-                updateWaitingTimeAt: updateWaitingTimeAt
-                waitingTime: maxWaitingTime,
+                updateWaitingTimeAt: updateWaitingTimeAt,
+                waitingTime: maxWaitingTime
             };
             console.log("Init ==>  updateTravelTimeAt: " + moment(event.updateTravelTimeAt).format("HH:mm") + " updateWaitingTimeAt: " + moment(event.updateWaitingTimeAt).format("HH:mm") + " waitingTme: " + event.waitingTime + ", currentTime: " + moment().format("HH:mm") + ", notificationTime: " + moment(event.notificationTime).format("HH:mm") + ", startTravelAt: " + moment(event.startTravelAt).format("HH:mm") + ", requestedAt: " + moment(event.requestedAt).format("HH:mm"));
             return event;
