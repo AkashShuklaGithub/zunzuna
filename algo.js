@@ -14,7 +14,7 @@ module.exports = {
 	* That means, if it takes 40 mins to drive from Koramangala to Hebbal now, it is assumed
 	* that it's not more than 100 mins at any time of the day.
 	*/
-	maxDeviationToTravelTime : function() { return 20; },
+	maxDeviationToTravelTime : function() { return 30; },
 	maxBufferTime : function() { return 10; },
 	maxWaitingTime : function() { return 20; },
 	googleApiKey : function() { return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA"; },
@@ -126,21 +126,6 @@ module.exports = {
 		event.startTravelAt = moment(event.startTravelAt).format("HH:mm");
 		event.updateTravelTimeAt = moment(event.updateTravelTimeAt).format("HH:mm");
 		console.log(util.inspect(event, false, null));
-	},
-
-	getClosedFibonaciiNumber: function(number){
-		fibonacciNumbersArray = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
-		var current = fibonacciNumbersArray[0];
-		var difference = Math.abs(number - current);
-		var index = fibonacciNumbersArray.length;
-		while (index--) {
-			var newDifference = Math.abs(number - fibonacciNumbersArray[index]);
-			if (newDifference < difference) {
-				difference = newDifference;
-				current = fibonacciNumbersArray[index];
-			}
-		}
-		return current;
 	},
 
 	getGoogleApiEndPoint: function(source, destination){

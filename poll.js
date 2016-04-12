@@ -30,7 +30,7 @@ module.exports = {
 
 		if(addTravelTime <= stopPollingBefore)
 			return moment();
-		console.log("|==> heuristicPollingAt()-> updateTravelTimeAt : " + moment(updateTravelTimeAt).format("HH:mm"));
+		console.log("|==> heuristicPollingAt()-> updateTravelTimeAt : " + moment().add(addTravelTime, 'minutes').format("HH:mm"));
 
 		// add the offset to timestamp
 		return moment().add(addTravelTime, 'minutes');
