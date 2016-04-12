@@ -10,10 +10,6 @@ Notify user when to book uber to reach destination on time. :)
 - Calculate the best time to send a notification to user for booking cab (sendNotificationAt())
 - Calculate the best time to fetch travel time from source to destination (getTravelTimeAt())
 
-### NOTE
-Travel time from source to destination is subjected to change as per Traffic.
-
-
 ### Algorithm
 1. set event.updateTravelTimeAt to currentTime and fetch the event.travelTime
 2. Calculate maxTravelTime = event.travelTime @ event.requestedAt + maxDeviationToTravelTime
