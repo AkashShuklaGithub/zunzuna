@@ -1,3 +1,4 @@
+var math = require('mathjs');
 var moment = require('moment');
 moment().format();
 
@@ -19,7 +20,7 @@ module.exports = {
 		if(checkAfter === 0)
 			return moment();
 
-		var magicNumber = this.getClosedFibonaciiNumber(checkAfter);
+		var magicNumber = getClosedFibonaciiNumber(checkAfter);
 		var intermediateValue = math.subtract(fibonacciNumbersArray.indexOf(magicNumber),1)
 		var offset = fibonacciNumbersArray[ intermediateValue < 0 ? 0 : intermediateValue];
 
@@ -43,3 +44,18 @@ module.exports = {
 		return moment().add(interval, "minutes");
 	}
 }
+
+getClosedFibonaciiNumber= function(number){
+		fibonacciNumbersArray = [1,2,3,5,8,13,21,43,55,89,144,233,377,610,987,1597];
+		var current = fibonacciNumbersArray[0];
+		var difference = Math.abs(number - current);
+		var index = fibonacciNumbersArray.length;
+		while (index--) {
+			var newDifference = Math.abs(number - fibonacciNumbersArray[index]);
+			if (newDifference < difference) {
+				difference = newDifference;
+				current = fibonacciNumbersArray[index];
+			}
+		}
+		return current;
+	}
