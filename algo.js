@@ -1,10 +1,9 @@
 var math = require('mathjs');
-var util = require('util');
-var request = require('request');
-var Q = require('q');
-var poll = require('./poll.js');
 var moment = require('moment');
-var querystring = require('querystring');
+var poll = require('./poll.js');
+var Q = require('q');
+var request = require('request');
+
 moment().format();
 
 module.exports = {
@@ -27,7 +26,7 @@ module.exports = {
         return "AIzaSyB6ky0s6kmaxH15hsxsNHKuZeI6n_OG2eA";
     },
     uberApiKey: function() {
-        return "BPehDhjfmMaomcn2ZbnWuyaqRzrZoTS1ezAMlZs1"
+        return "BPehDhjfmMaomcn2ZbnWuyaqRzrZoTS1ezAMlZs1";
     },
     startUberPolling: function() {
         return 10;
@@ -49,16 +48,16 @@ module.exports = {
 
         var addEvent = function(source, destination, startTravelAt, email, notificationTime, travelTime, updateTravelTimeAt, updateWaitingTimeAt) {
             var event = {
-                source: source,
                 destination: destination,
-                startTravelAt: startTravelAt,
                 email: email,
-                requestedAt: moment(),
                 notificationTime: notificationTime,
+                requestedAt: moment(),
+                source: source,
+                startTravelAt: startTravelAt,
                 travelTime: travelTime,
-                waitingTime: maxWaitingTime,
                 updateTravelTimeAt: updateTravelTimeAt,
                 updateWaitingTimeAt: updateWaitingTimeAt
+                waitingTime: maxWaitingTime,
             };
             console.log("Init ==>  updateTravelTimeAt: " + moment(event.updateTravelTimeAt).format("HH:mm") + " updateWaitingTimeAt: " + moment(event.updateWaitingTimeAt).format("HH:mm") + " waitingTme: " + event.waitingTime + ", currentTime: " + moment().format("HH:mm") + ", notificationTime: " + moment(event.notificationTime).format("HH:mm") + ", startTravelAt: " + moment(event.startTravelAt).format("HH:mm") + ", requestedAt: " + moment(event.requestedAt).format("HH:mm"));
             return event;
@@ -127,14 +126,6 @@ module.exports = {
             event.notificationTime = notificationTime(waitingTime);
             return event;
         });
-    },
-
-    prettyprint: function(event) {
-        event.requestedAt = moment(event.requestedAt).format("HH:mm");
-        event.notificationTime = moment(event.notificationTime.value).format("HH:mm");
-        event.startTravelAt = moment(event.startTravelAt).format("HH:mm");
-        event.updateTravelTimeAt = moment(event.updateTravelTimeAt).format("HH:mm");
-        console.log(util.inspect(event, false, null));
     },
 
     getGoogleApiEndPoint: function(source, destination) {
