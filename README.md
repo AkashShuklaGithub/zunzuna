@@ -22,3 +22,9 @@ Travel time from source to destination is subjected to change as per Traffic.
 5. If the event.updateTravelTimeAt matches to currentTime, getTravelTime() [i.e update event.travelTime] and update event.notificationTime and calculate event.updateTravelTimeAt.
 6. If the event.udpateWaitingTimeAt matches to currentTIme, getWaitingTime() [i.e update event.waitingTime] and update event.notificationTime and calculate event.updateWaitingTime.
 7. If event.notificationTime matches to currentTime, send notification.
+
+### Assumptions
+- Google api polling will start at (maxTravelTime + maxWaitingTime + maxBufferTime)
+- Uber api polling will start at (notificationTime - startUberPolling)
+- Google api polling stops 5 mins prior to notificationTime
+- Uber api polls every 2 mins till the notificationTime
