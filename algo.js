@@ -14,7 +14,7 @@ module.exports = {
      * that it's not more than 100 mins at any time of the day.
      */
     maxDeviationToTravelTime: function() {
-        return 30;
+        return 60;
     },
     maxBufferTime: function() {
         return 10;
