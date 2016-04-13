@@ -19,4 +19,6 @@ Travel time from source to destination is subjected to change as per Traffic.
 2. Calculate maxTravelTime = event.travelTime @ event.requestedAt + maxDeviationToTravelTime
 3. set event.updateTravelTimeAt to [event.startTravelAt - (maxBufferTime + maxTravelTime + maxWaitingTime)]
 4. set event.notificationTime to [event.startTravelAt - (maxBufferTime + event.travelTime + maxWaitingTime)]
-5. If the event.updateTravelTimeAt matches to currentTime, getTravelTime() [i.e update event.travelTime] and update event.notificationTime (sendNotificationAt()) and calculate event.updateTravelTimeAt
+5. If the event.updateTravelTimeAt matches to currentTime, getTravelTime() [i.e update event.travelTime] and update event.notificationTime and calculate event.updateTravelTimeAt.
+6. If the event.udpateWaitingTimeAt matches to currentTIme, getWaitingTime() [i.e update event.waitingTime] and update event.notificationTime and calculate event.updateWaitingTime.
+7. If event.notificationTime matches to currentTime, send notification.
