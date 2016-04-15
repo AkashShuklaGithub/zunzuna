@@ -12,7 +12,7 @@ Notify user when to book uber to reach destination on time. :)
   npm install request
 ```
 4. update the latitude, longitude of source & destination in zunzuna.js
-5. run `node zunzuna.js`
+5. run `node index.js`
 6. you might need to update the google api key and uber api key, if GET calls fail
 
 ### How it works?
