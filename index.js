@@ -7,7 +7,7 @@ function createEvent(event){
 	var event = algo.init(event.source, event.destination, event.time, event.emailid);
 
 	// set the interval
-	refreshInterval = setInterval(function() {
+	var refreshInterval = setInterval(function() {
 		event.then(function(event) {
 			if (moment(event.updateTravelTimeAt).isBefore(moment(), 'minute')) {
 				log(event, " Google ");
