@@ -33,8 +33,8 @@ function createEvent(event) {
                 console.log("====================================")
             }
         }).fail(function() {
-            console.log("Failed. Try Again.")
-            process.exit(1);
+            clearInterval(refreshInterval);
+            console.log("Event is failed. Try Again.");
         }).done();
     }, 10000);
 }
