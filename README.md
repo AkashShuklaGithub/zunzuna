@@ -2,18 +2,32 @@
 Notify user when to book uber to reach destination on time. :)
 
 ### How to use?
-1. clone the repo
-2. install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
-3. install dependencies
-```bash
-  npm install moment
-  npm install mathjs
-  npm install q
-  npm install request
+1. install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
+2. create a project directory `mkdir myproject`
+3. install zunzuna `npm install zunzuna` or `npm install zunzuna --save`
+4. update google api key and uber api key in node_modules/zunzuna/lib/algo.js file
+```javascript
+//replace with google distance matric api key
+const googleApiKey = "update your api key here";
+// replace with uber server_token
+const uberApiKey = "update your api key here";
 ```
-4. update the latitude, longitude of source & destination in zunzuna.js
-5. run `node index.js`
-6. you might need to update the google api key and uber api key, if GET calls fail
+5. add test.js file which requires the package and calls the methods
+```javascript
+var zunzuna = require('zunzuna');
+// source, destination format : "latitude, longitude"
+var event = {
+	source: "13.920397, 77.686605",
+	destination: "13.915002, 77.833941",
+	time: 120,
+	emailid: "abc@example.com"
+};
+zunzuna.createEvent(event);
+```
+6. Disable debugging by setting debug to false (optional step)
+```javascript
+var debug = true;
+```
 
 ### How it works?
 - Get at the source (event.source), destination (event.destination), travel start time (event.startTravelAt) and email id (event.email) of an user event (event).
@@ -38,3 +52,5 @@ Notify user when to book uber to reach destination on time. :)
 - Uber api polling will start at (notificationTime - startUberPolling)
 - Google api polling stops 5 mins prior to notificationTime
 - Uber api polls every 2 mins till the notificationTime
+- NOTE: Values can be changed from node_modules/zunzuna/lib/algo.js file
+
