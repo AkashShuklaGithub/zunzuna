@@ -24,10 +24,7 @@ var event = {
 };
 zunzuna.createEvent(event);
 ```
-6. Disable debugging by setting debug to false (optional step)
-```javascript
-var debug = true;
-```
+6. Disable debugging by setting debug to false in file node_modules/zunzuna/lib/algo.js file (optional step). i.e. replace `var debug = true` with `var debug = false`
 
 ### How it works?
 - Get at the source (event.source), destination (event.destination), travel start time (event.startTravelAt) and email id (event.email) of an user event (event).
