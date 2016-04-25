@@ -2,17 +2,17 @@
 Notify user when to book uber to reach destination on time. :)
 
 ### How to use?
-1. install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
-2. create a project directory `mkdir myproject`
-3. install zunzuna `npm install zunzuna` or `npm install zunzuna --save`
-4. update google api key and uber api key in node_modules/zunzuna/lib/algo.js file
+- install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
+- create a project directory `mkdir myproject`
+- install zunzuna `npm install zunzuna` or `npm install zunzuna --save`
+- update google api key and uber api key in node_modules/zunzuna/lib/algo.js file
 ```javascript
 //replace with google distance matric api key
 const googleApiKey = "update your api key here";
 // replace with uber server_token
 const uberApiKey = "update your api key here";
 ```
-5. add test.js file which requires the package and calls the methods
+- add test.js file which requires the package and calls the methods
 ```javascript
 var zunzuna = require('zunzuna');
 // source, destination format : "latitude, longitude"
@@ -24,7 +24,7 @@ var event = {
 };
 zunzuna.createEvent(event);
 ```
-6. Disable debugging by setting debug to false in file node_modules/zunzuna/lib/algo.js file (optional step). i.e. replace `var debug = true` with `var debug = false`
+- Disable debugging by setting debug to false in file node_modules/zunzuna/lib/algo.js file (optional step). i.e. replace `var debug = true` with `var debug = false`
 
 ### How it works?
 - Get at the source (event.source), destination (event.destination), travel start time (event.startTravelAt) and email id (event.email) of an user event (event).
