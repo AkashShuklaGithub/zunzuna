@@ -12,6 +12,9 @@ const validateEvent = (event) => {
     if (typeof event !== 'object') {
         throw new Error("Event must be an object");
     }
+    if (!event.id){
+        throw new Error("The event 'id' is missing.");
+    }
     if (!event.source) {
         throw new Error("The 'source' is missing.");
     }

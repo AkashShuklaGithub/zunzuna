@@ -5,26 +5,25 @@ Notify user when to book uber to reach destination on time. :)
 - install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
 - create a project directory `mkdir myproject`
 - install zunzuna `npm install zunzuna` or `npm install zunzuna --save`
-- update google api key and uber api key in node_modules/zunzuna/lib/algo.js file
-```javascript
-//replace with google distance matric api key
-const googleApiKey = "update your api key here";
-// replace with uber server_token
-const uberApiKey = "update your api key here";
-```
-- add test.js file which requires the package and calls the methods
-```javascript
-var zunzuna = require('zunzuna');
-// source, destination format : "latitude, longitude"
-var event = {
-	source: "13.920397, 77.686605",
-	destination: "13.915002, 77.833941",
-	time: 120,
-	emailid: "abc@example.com"
-};
-zunzuna.createEvent(event);
-```
+- set GOOGLE_API_KEY & UBER_API_KEY environment variables
 - Disable debugging by setting debug to false in file node_modules/zunzuna/lib/algo.js file (optional step). i.e. replace `var debug = true` with `var debug = false`
+
+### Example
+```bash
+node emample/template.js
+```
+
+```javascirpt
+const Zunzuna = require('../').zunzuna;
+const zunzuna = new Zunzuna();
+
+const event = '{"source": "12.925006, 76.663978", "destination": "12.481734, 76.657222", "time" : 20, "emailid": "test@test.com"}';
+
+zunzuna.createEvent(JSON.parse(event));
+zunzuna.on('remind', (text) => {
+	console.log("Time to book Uber!");
+});
+```
 
 ### How it works?
 - Get at the source (event.source), destination (event.destination), travel start time (event.startTravelAt) and email id (event.email) of an user event (event).
