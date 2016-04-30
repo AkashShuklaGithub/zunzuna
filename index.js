@@ -1,18 +1,20 @@
 'user strict'
 
 var algo = require('./lib/algo');
-var moment = require('moment');
 var events = require('events');
+var moment = require('moment');
 
 moment().format();
 
 const debug = true;
+
 const REFRESH_INTERVAL = 10000;
+
 const validateEvent = (event) => {
     if (typeof event !== 'object') {
         throw new Error("Event must be an object");
     }
-    if (!event.id){
+    if (!event.id) {
         throw new Error("The event 'id' is missing.");
     }
     if (!event.source) {
@@ -37,7 +39,7 @@ const zunzuna = function() {
 
     this.createEvent = (event) => {
         var event = validateEvent(event);
-        event = algo.init(event.source, event.destination, event.time, event.emailid);
+        event = algo.init(event.id, event.source, event.destination, event.time, event.emailid);
         var self = this;
         // set the interval
         var refreshInterval = setInterval(function() {
@@ -64,7 +66,10 @@ const zunzuna = function() {
                     algo.log("====================================")
                     algo.log("|==> notificationTime: " + moment(event.notificationTime).format("HH:mm:ss") + ", currentTime: " + moment().format("HH:mm:ss"));
                     clearInterval(refreshInterval);
-                    self.emit("remind", "Time to Book Uber!");
+                    self.emit("notify", {
+                        eventid: event.id,
+                        msg: "Time to Book Uber!"
+                    });
                     algo.log("====================================")
                 }
             }).fail(function() {
