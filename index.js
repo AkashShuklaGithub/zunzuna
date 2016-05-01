@@ -6,7 +6,7 @@ var moment = require('moment');
 
 moment().format();
 
-const debug = true;
+const debug = false;
 
 const REFRESH_INTERVAL = 10000;
 
@@ -89,7 +89,8 @@ zunzuna.prototype.__proto__ = events.EventEmitter.prototype;
 
 
 var log = function(event, type) {
-    process.stdout.write("\n")
+    if(debug)
+        process.stdout.write("\n")
     algo.log(type + " ==>  updateTravelTimeAt: " + moment(event.updateTravelTimeAt).format("HH:mm:ss") + " updateWaitingTimeAt: " + moment(event.updateWaitingTimeAt).format("HH:mm:ss") + " waitingTime: " + event.waitingTime + ", currentTime: " + moment().format("HH:mm:ss") + ", notificationTime: " + moment(event.notificationTime).format("HH:mm:ss") + ", startTravelAt: " + moment(event.startTravelAt).format("HH:mm:ss") + ", requestedAt: " + moment(event.requestedAt).format("HH:mm:ss"));
 }
 
