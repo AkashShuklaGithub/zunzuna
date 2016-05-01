@@ -1,4 +1,4 @@
-'user strict'
+'use strict'
 
 var algo = require('./lib/algo');
 var events = require('events');
@@ -38,7 +38,8 @@ const zunzuna = function() {
     events.EventEmitter.call(this);
 
     this.createEvent = (event) => {
-        var event = validateEvent(event);
+        event = validateEvent(event);
+        const eventid = event.id;
         event = algo.init(event.id, event.source, event.destination, event.time, event.emailid);
         var self = this;
         // set the interval
@@ -67,7 +68,7 @@ const zunzuna = function() {
                     algo.log("|==> notificationTime: " + moment(event.notificationTime).format("HH:mm:ss") + ", currentTime: " + moment().format("HH:mm:ss"));
                     clearInterval(refreshInterval);
                     self.emit("notify", {
-                        eventid: event.id,
+                        eventid: eventid,
                         msg: "Time to Book Uber!"
                     });
                     algo.log("====================================")
@@ -75,6 +76,10 @@ const zunzuna = function() {
             }).fail(function() {
                 clearInterval(refreshInterval);
                 algo.log("Event is failed. Try Again.");
+                self.emit("notify", {
+                    eventid: eventid,
+                    msg: "Failed to set the reminder! Try again. :("
+                });
             }).done();
         }, REFRESH_INTERVAL);
     }

@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/awachat/zunzuna/issues"
   },
-  "homepage": "https://github.com/awachat/zunzuna#readme"
+  "homepage": "https://github.com/awachat/zunzuna#readme",
+  "directories": {
+    "example": "examples"
+  }
 }
