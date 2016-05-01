@@ -1,17 +1,26 @@
 # zunzuna
+
 Notify user when to book uber to reach destination on time. :)
 
-### How to use?
-- install [nodejs](https://nodejs.org/en/download/) (v5.10.1)
-- create a project directory `mkdir myproject`
-- install zunzuna `npm install zunzuna` or `npm install zunzuna --save`
-- set GOOGLE_API_KEY & UBER_API_KEY environment variables
-- Disable debugging by setting debug to false in file node_modules/zunzuna/lib/algo.js file (optional step). i.e. replace `var debug = true` with `var debug = false`
+## Install
 
-### Example
+In your node.js project, run:
+
 ```bash
-node emample/template.js
+npm install --save zunzuna
 ```
+
+# Quickstart
+
+Run in your terminal:
+
+```bash
+node examples/template.js
+```
+
+NOTE: set GOOGLE_API_KEY & UBER_API_KEY environment variables 
+
+## Example
 
 ```javascirpt
 const Zunzuna = require('zunzuna').zunzuna;
@@ -19,7 +28,7 @@ const Zunzuna = require('zunzuna').zunzuna;
 const zunzuna = new Zunzuna();
 
 const event = {
-	"id" : "someid",
+    "id" : "someid",
     "source": "12.925006, 76.663978",
     "destination": "12.481734, 76.657222",
     "time": 20,
@@ -37,7 +46,7 @@ zunzuna.on('notify', (params) => {
 });
 ```
 
-### How it works?
+## How it works?
 - Get at the source (event.source), destination (event.destination), travel start time (event.startTravelAt) and email id (event.email) of an user event (event).
 - Fetch the total travel time (travelTime) to destination (destination) at this instance (event.requestedAt).
 - Set the maximum travel time (maxTravelTime) to (travelTime + maxDeviationToTravelTime = 60 mins )
@@ -46,7 +55,7 @@ zunzuna.on('notify', (params) => {
 - Calculate the best time to send a notification to user for booking cab (sendNotificationAt())
 - Calculate the best time to fetch travel time from source to destination (getTravelTimeAt())
 
-### Algorithm
+## Algorithm
 1. set event.updateTravelTimeAt to currentTime and fetch the event.travelTime
 2. Calculate maxTravelTime = event.travelTime @ event.requestedAt + maxDeviationToTravelTime
 3. set event.updateTravelTimeAt to [event.startTravelAt - (maxBufferTime + maxTravelTime + maxWaitingTime)]
@@ -55,7 +64,7 @@ zunzuna.on('notify', (params) => {
 6. If the event.udpateWaitingTimeAt matches to currentTIme, getWaitingTime() [i.e update event.waitingTime] and update event.notificationTime and calculate event.updateWaitingTime.
 7. If event.notificationTime matches to currentTime, send notification.
 
-### Assumptions
+## Assumptions
 - Google api polling will start at (maxTravelTime + maxWaitingTime + maxBufferTime)
 - Uber api polling will start at (notificationTime - startUberPolling)
 - Google api polling stops 5 mins prior to notificationTime
