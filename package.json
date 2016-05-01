@@ -1,6 +1,6 @@
 {
   "name": "zunzuna",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Notify user when to book uber to reach destination on time.",
   "main": "index.js",
   "dependencies": {
