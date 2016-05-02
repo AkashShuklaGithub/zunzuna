@@ -10,7 +10,7 @@ In your node.js project, run:
 npm install --save zunzuna
 ```
 
-# Quickstart
+## Quickstart
 
 Run in your terminal:
 
