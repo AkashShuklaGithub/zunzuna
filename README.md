@@ -23,7 +23,7 @@ NOTE: set GOOGLE_API_KEY & UBER_API_KEY environment variables
 ## Example
 
 ```javascirpt
-const Zunzuna = require('zunzuna').zunzuna;
+const Zunzuna = require('zunzuna');
 
 const zunzuna = new Zunzuna();
 

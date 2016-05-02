@@ -1,4 +1,4 @@
-const Zunzuna = require('../').zunzuna;
+const Zunzuna = require('../');
 
 const zunzuna = new Zunzuna();
 
