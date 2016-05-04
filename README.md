@@ -87,6 +87,8 @@ You need to `npm install` the following dependencies: body-parser, express, requ
 6. Talk to your bot on Messenger!
 7. You need to define the sories to get the appropriate context from [wit.ai](https://wit.ai)
 
+For now you can use these [wit.ai stories](https://wit.ai/awachat/zunzuna/stories)
+
 For windows users, set the environment variables using `settoken.bat` file and run `settoken.bat` on cmd prompt
 
 ## How Zunzuna works?
