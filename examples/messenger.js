@@ -9,7 +9,8 @@
 // 1. npm install body-parser express request 
 // 2. Download and install ngrok from https://ngrok.com/download
 // 3. ./ngrok -http 8445
-// 4. WIT_TOKEN=your_access_token FB_PAGE_ID=your_page_id FB_PAGE_TOKEN=your_page_token FB_VERIFY_TOKEN=verify_token node examples/messenger.js
+// 4. WIT_TOKEN=your_access_token FB_PAGE_ID=your_page_id FB_PAGE_TOKEN=your_page_token FB_VERIFY_TOKEN=verify_token  GOOGLE_API_KEY=your_google_api_key UBER_API_KEY=your_uber_api_key 
+//node examples/messenger.js
 // 5. Subscribe your page to the Webhooks using verify_token and `https://<your_ngrok_io>/fb` as callback URL.
 // 6. Talk to your bot on Messenger!
 
