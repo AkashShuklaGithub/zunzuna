@@ -23,6 +23,8 @@ const Zunzuna = require('../');
 const Wit = require('node-wit').Wit;
 const Logger = require('node-wit').Logger;
 const levels = require('node-wit').logLevels;
+const moment = require('moment');
+moment().format();
 
 const logger = new Logger(levels.DEBUG);
 
@@ -59,22 +61,45 @@ const fbReq = request.defaults({
     },
 });
 
-const fbMessage = (recipientId, msg, cb) => {
+const fbMessage = (recipientId, msg, attachment, cb) => {
     const opts = {
         form: {
             recipient: {
                 id: recipientId,
             },
-            message: {
-                text: msg,
-            },
+            message: {}
         },
     };
+    if (msg && typeof msg === 'string') {
+        opts.form.message["text"] = msg;
+    } else if (attachment && typeof attachment === 'object') {
+        opts.form.message["attachment"] = attachment;
+    }
     fbReq(opts, (err, resp, data) => {
         if (cb) {
             cb(err || data.error && data.error.message, data);
         }
     });
+};
+
+const zunzunaFbMessage = (sessionId, message, attachment) => {
+    // Let's retrive the facebook user whose session belongs to
+    const recipientId = sessions[sessionId].fbid;
+    if (recipientId) {
+        // we found the facebook user
+        fbMessage(recipientId, message, attachment, (err, data) => {
+            if (err) {
+                console.log(
+                    'Oops! An error occurred while forwarding the zunzuna response to',
+                    recipientId,
+                    ':',
+                    err
+                );
+            }
+        });
+    } else {
+        console.log('Oops! Couldn\'t find user for session:', sessionId);
+    }
 };
 
 // See the Webhook reference
@@ -102,31 +127,28 @@ const sessions = {};
 
 const zunzuna = new Zunzuna();
 
+zunzuna.on("details", (params) => {
+    // send the message when the event is created successfully.
+    const sessionId = params.eventid;
+    const event = params.event;
+    if (typeof event === 'object' && event.source && typeof event.source === 'object' && event.destination && typeof event.destination === 'object') {
+        zunzunaFbMessage(sessionId, "I have set a reminder for you. (y)");
+        zunzunaFbMessage(sessionId, "from " + event.source.formatted_address);
+        zunzunaFbMessage(sessionId, "to " + event.destination.formatted_address);
+        zunzunaFbMessage(sessionId, "at " + moment(event.startTravelAt).format("HH:mm"));
+    }
+
+});
+
 // send message to messenger from zunzuna
 zunzuna.on("notify", (params) => {
     // Zunzuna has something to say
     // lets get the eventid or sessionid 
     const sessionId = params.eventid;
     const message = params.msg;
-    // Let's retrive the facebook user whose session belongs to
-    const recipientId = sessions[sessionId].fbid;
-
-    if (recipientId) {
-        // we found the facebook user
-        fbMessage(recipientId, message, (err, data) => {
-            if (err) {
-                console.log(
-                    'Oops! An error occurred while forwarding the zunzuna response to',
-                    recipientId,
-                    ':',
-                    err
-                );
-            }
-        });
-    } else {
-        console.log('Oops! Couldn\'t find user for session:', sessionId);
-    }
+    zunzunaFbMessage(sessionId, message);
 });
+
 
 // Wit.ai bot specific code
 
@@ -238,6 +260,7 @@ const actions = {
             destination: context.destination,
             time: context.datetime
         }
+        zunzunaFbMessage(sessionId, "setting reminder..");
         zunzuna.createEvent(event);
         //clear context
         cb(clearContext(context));
@@ -320,12 +343,12 @@ app.post('/fb', (req, res) => {
                         // Based on the session state, you might want to reset the session.
                         // This depends heavily on the business logic of your bot.
                         // Example:
-                        // if (context['done'] === 'success') {
-                        //     delete sessions[sessionId];
-                        // } else {
-                        // Updating the user's current session state
-                        sessions[sessionId].context = context;
-                        // }
+                        if (context['done'] === 'success') {
+                            sessions[sessionId].context = {};
+                        } else {
+                            // Updating the user's current session state
+                            sessions[sessionId].context = context;
+                        }
                     }
                 }
             );
