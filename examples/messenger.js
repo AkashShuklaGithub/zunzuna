@@ -271,11 +271,6 @@ const actions = {
         cb(clearContext(context));
     },
     clearContext: (sessionId, context, cb) => {
-        delete context.source;
-        delete context.destination;
-        delete context.datetime;
-        delete context.location;
-        context.done = "success";
         cb(clearContext(context));
     }
 };
