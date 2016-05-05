@@ -145,7 +145,12 @@ zunzuna.on("notify", (params) => {
     // Zunzuna has something to say
     // lets get the eventid or sessionid 
     const sessionId = params.eventid;
-    const message = params.msg;
+    let message = params.msg;
+    if( params.event && typeof params.event === 'object' ){
+    	if (message === 'Time to Book Uber!') {
+		message =  "Time to book Uber to reach " + params.event.destination.formatted_address + " at " + moment(params.event.startTravelAt).format("HH:mm a");
+        }
+    }
     zunzunaFbMessage(sessionId, message);
 });
 
